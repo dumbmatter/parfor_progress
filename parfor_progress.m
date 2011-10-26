@@ -10,12 +10,14 @@ function percent = parfor_progress(N)
 %   upcoming calculations.
 %
 %   PARFOR_PROGRESS updates the progress inside your parfor loop and
-%   outputs the current completion percentage.
+%   displays an updated progress bar.
 %
-%   PERCENT = PARFOR_PROGRESS suppresses output and instead returns the
-%   completion percentage.
+%   PARFOR_PROGRESS(0) deletes parfor_progress.txt and finalizes progress
+%   bar.
 %
-%   PARFOR_PROGRESS(0) deletes parfor_progress.txt.
+%   To suppress output from any of these functions, just ask for a return
+%   variable from the function calls, like PERCENT = PARFOR_PROGRESS which
+%   returns the percentage of completion.
 %
 %   Example:
 %
@@ -38,6 +40,7 @@ if nargin < 1
 end
 
 percent = 0;
+w = 50; % Width of progress bar
 
 if N > 0
     f = fopen('parfor_progress.txt', 'w');
@@ -46,9 +49,17 @@ if N > 0
     end
     fprintf(f, '%d\n', N); % Save N at the top of progress.txt
     fclose(f);
+    
+    if nargout == 0
+        disp(['  0%[>', repmat(' ', 1, w), ']']);
+    end
 elseif N == 0
     delete('parfor_progress.txt');
     percent = 100;
+    
+    if nargout == 0
+        disp([repmat(char(8), 1, (w+9)), char(10), '100%[', repmat('=', 1, w+1), ']']);
+    end
 else
     if ~exist('parfor_progress.txt', 'file')
         error('parfor_progress.txt not found. Run PARFOR_PROGRESS(N) before PARFOR_PROGRESS to initialize parfor_progress.txt.');
@@ -64,6 +75,7 @@ else
     percent = (length(progress)-1)/progress(1)*100;
     
     if nargout == 0
-        fprintf('%3.0f%%...\n', percent);
+        perc = sprintf('%3.0f%%', percent); % 4 characters wide, percentage
+        disp([repmat(char(8), 1, (w+9)), char(10), perc, '[', repmat('=', 1, round(percent*w/100)), '>', repmat(' ', 1, w - round(percent*w/100)), ']']);
     end
 end
